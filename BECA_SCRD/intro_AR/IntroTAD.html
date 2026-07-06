@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+
+  <style>
+    /* =====================================================
+       RESET BASE
+    ====================================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    body {
+      background-color: #000;
+    }
+
+    body.ar-active {
+      background-color: transparent;
+    }
+
+    #ar-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+
+    #start-button-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #example-start-button {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: none;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      display: block;
+    }
+
+    #example-start-button img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      width: 208px;
+      height: 152px;
+      display: block;
+    }
+
+    @keyframes pulse-btn {
+      0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 1;    }
+      50%       { transform: translate(-50%, -50%) scale(1.08); opacity: 0.85; }
+    }
+    #example-start-button img {
+      animation: pulse-btn 2s ease-in-out infinite;
+    }
+    #example-start-button:active img {
+      animation: none;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    body.ar-active #start-button-container {
+      display: none;
+    }
+
+    #frases-container {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 999;
+      pointer-events: none;
+      perspective: 600px;
+      overflow: hidden;
+    }
+
+    body.ar-active #frases-container {
+      display: none;
+    }
+
+    .frase {
+      position: absolute;
+      font-family: 'Arial Black', Arial, sans-serif;
+      font-weight: 900;
+      white-space: nowrap;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .f1  { top:  8%; left:  5%; font-size: 1.1rem; color: #FF3CAC; opacity: 0.9; animation: flotar1 6.0s ease-in-out infinite; }
+    .f2  { top: 15%; left: 55%; font-size: 1.8rem; color: #FFD93D; opacity: 1.0; animation: flotar2 7.5s ease-in-out infinite; }
+    .f3  { top: 28%; left: 10%; font-size: 0.9rem; color: #6BFF6B; opacity: 0.75; animation: flotar3 5.5s ease-in-out infinite; }
+    .f4  { top: 35%; left: 70%; font-size: 1.4rem; color: #00D4FF; opacity: 0.95; animation: flotar4 8.0s ease-in-out infinite; }
+    .f5  { top: 55%; left:  3%; font-size: 2.0rem; color: #FF6B35; opacity: 1.0; animation: flotar5 6.8s ease-in-out infinite; }
+    .f6  { top: 60%; left: 60%; font-size: 1.0rem; color: #C77DFF; opacity: 0.8; animation: flotar6 7.2s ease-in-out infinite; }
+    .f7  { top: 72%; left: 20%; font-size: 1.6rem; color: #FF2D55; opacity: 0.9; animation: flotar7 5.8s ease-in-out infinite; }
+    .f8  { top: 78%; left: 65%; font-size: 1.2rem; color: #00FFB3; opacity: 0.85; animation: flotar8 9.0s ease-in-out infinite; }
+    .f9  { top:  5%; left: 35%; font-size: 1.5rem; color: #FF9F1C; opacity: 1.0; animation: flotar9 6.3s ease-in-out infinite; }
+    .f10 { top: 88%; left: 35%; font-size: 0.85rem; color: #E0FF4F; opacity: 0.7; animation: flotar10 8.5s ease-in-out infinite; }
+
+    @keyframes flotar1 {
+      0%, 100% { transform: perspective(600px) rotateX(10deg) rotateY(-15deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-12deg) rotateY(18deg) translateY(-18px) translateZ(40px); }
+    }
+    @keyframes flotar2 {
+      0%, 100% { transform: perspective(600px) rotateX(-8deg) rotateY(20deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(14deg) rotateY(-10deg) translateY(22px) translateZ(60px); }
+    }
+    @keyframes flotar3 {
+      0%, 100% { transform: perspective(600px) rotateX(20deg) rotateY(5deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-6deg) rotateY(-22deg) translateY(-14px) translateZ(30px); }
+    }
+    @keyframes flotar4 {
+      0%, 100% { transform: perspective(600px) rotateX(-15deg) rotateY(-18deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(10deg) rotateY(25deg) translateY(20px) translateZ(50px); }
+    }
+    @keyframes flotar5 {
+      0%, 100% { transform: perspective(600px) rotateX(5deg) rotateY(12deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-18deg) rotateY(-8deg) translateY(-25px) translateZ(70px); }
+    }
+    @keyframes flotar6 {
+      0%, 100% { transform: perspective(600px) rotateX(12deg) rotateY(-20deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-5deg) rotateY(15deg) translateY(16px) translateZ(35px); }
+    }
+    @keyframes flotar7 {
+      0%, 100% { transform: perspective(600px) rotateX(-10deg) rotateY(22deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(16deg) rotateY(-12deg) translateY(-20px) translateZ(55px); }
+    }
+    @keyframes flotar8 {
+      0%, 100% { transform: perspective(600px) rotateX(18deg) rotateY(8deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-8deg) rotateY(-18deg) translateY(24px) translateZ(45px); }
+    }
+    @keyframes flotar9 {
+      0%, 100% { transform: perspective(600px) rotateX(-20deg) rotateY(-5deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(8deg) rotateY(20deg) translateY(-18px) translateZ(65px); }
+    }
+    @keyframes flotar10 {
+      0%, 100% { transform: perspective(600px) rotateX(6deg) rotateY(-25deg) translateY(0px) translateZ(0px); }
+      50%      { transform: perspective(600px) rotateX(-14deg) rotateY(10deg) translateY(20px) translateZ(40px); }
+    }
+
+    #example-scanning-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      left: 0; right: 0; top: 0; bottom: 0;
+      background: transparent;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #example-scanning-overlay.hidden {
+      display: none;
+    }
+
+    @media (min-aspect-ratio: 1/1) { #example-scanning-overlay .inner { width: 50vh; height: 50vh; } }
+    @media (max-aspect-ratio: 1/1) { #example-scanning-overlay .inner { width: 80vw; height: 80vw; } }
+
+    #example-scanning-overlay .inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background:
+        linear-gradient(to right, white 10px, transparent 10px) 0 0,
+        linear-gradient(to right, white 10px, transparent 10px) 0 100%,
+        linear-gradient(to left, white 10px, transparent 10px) 100% 0,
+        linear-gradient(to left, white 10px, transparent 10px) 100% 100%,
+        linear-gradient(to bottom, white 10px, transparent 10px) 0 0,
+        linear-gradient(to bottom, white 10px, transparent 10px) 100% 0,
+        linear-gradient(to top, white 10px, transparent 10px) 0 100%,
+        linear-gradient(to top, white 10px, transparent 10px) 100% 100%;
+      background-repeat: no-repeat;
+      background-size: 40px 40px;
+    }
+
+    #example-scanning-overlay img {
+      opacity: 0.6;
+      width: 90%;
+      align-self: center;
+    }
+
+    #example-scanning-overlay .scanline {
+      position: absolute;
+      width: 100%;
+      height: 10px;
+      background: white;
+      animation: scanMove 2s linear infinite;
+    }
+
+    @keyframes scanMove {
+      0%, 100% { top: 0%; }
+      50%       { top: calc(100% - 10px); }
+    }
+
+    @supports (-webkit-touch-callout: none) {
+      body { background-attachment: scroll; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="frases-container">
+    <span class="frase f1">Toca aquí...</span>
+    <span class="frase f2">Toca aquí...</span>
+    <span class="frase f3">Toca aquí...</span>
+    <span class="frase f4">Toca aquí...</span>
+    <span class="frase f5">Toca aquí...</span>
+    <span class="frase f6">Toca aquí...</span>
+    <span class="frase f7">Toca aquí...</span>
+    <span class="frase f8">Toca aquí...</span>
+    <span class="frase f9">Toca aquí...</span>
+    <span class="frase f10">Toca aquí...</span>
+  </div>
+
+  <div id="start-button-container">
+    <button id="example-start-button" data-action="start">
+      <img src="https://generacionessabiascopy.github.io/asset_GS/boton.png" alt="Iniciar experiencia" />
+    </button>
+  </div>
+
+  <div id="ar-container">
+
+    <div id="example-scanning-overlay" class="hidden">
+      <div class="inner">
+        <img src="https://alade3alqueria.github.io/BECA_SCRD/intro_AR/card.png" alt="Apunta al marcador" />
+        <div class="scanline"></div>
+      </div>
+    </div>
+
+    <a-scene
+      mindar-image="
+        imageTargetSrc: https://alade3alqueria.github.io/BECA_SCRD/intro_AR/targets.mind;
+        autoStart: false;
+        showStats: false;
+        uiScanning: #example-scanning-overlay; maxTrack: 1
+      "
+      embedded
+      color-space="sRGB"
+      renderer="colorManagement: true; physicallyCorrectLights: true"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+
+      <a-assets>
+        <img crossorigin="anonymous" id="icon-web" src="https://generacionessabiascopy.github.io/interactivos/web.png" />
+        <video crossorigin="anonymous" id="coke-video-mp4" src="https://alade3alqueria.github.io/BECA_SCRD/intro_AR/intro-ar_LOW.mp4" playsinline webkit-playsinline preload="auto"></video>
+      </a-assets>
+
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="fuse: false; rayOrigin: mouse"
+        raycaster="far: 10000; objects: .clickable; interval: 100"
+      ></a-camera>
+
+      <a-entity id="mytarget0" mindar-image-target="targetIndex: 0">
+
+        <!-- ===================================================== -->
+        <!-- VIDEO — arranca de inmediato al detectar el QR. 480x480 (1:1) -->
+        <!-- ===================================================== -->
+        <a-entity id="fase-video" position="0 0.30 0" visible="true">
+          <a-plane
+            id="plano-video-t1"
+            width="0.75"
+            height="0.75"
+            position="0 0 0"
+            material="src: #coke-video-mp4; shader: flat; transparent: true"
+          ></a-plane>
+
+          <!-- Botón de activar sonido: fallback si el navegador bloquea el audio directo -->
+          <a-entity id="btn-sonido" visible="false" position="0 -0.50 0.01">
+            <a-plane id="btn-sonido-hit" class="clickable" width="0.55" height="0.14" color="#000000" opacity="0.55"></a-plane>
+            <a-text value="🔊 Activar sonido" align="center" width="1.4" color="#FFFFFF" position="0 0 0.01"></a-text>
+          </a-entity>
+
+          <!-- ================================================= -->
+          <!-- BOTÓN CTA — oculto hasta que el video termina.     -->
+          <!-- Centrado sobre el video (end-card, estilo YouTube) -->
+          <!-- ================================================= -->
+          <a-image id="btn-web" class="clickable" src="#icon-web" alpha-test="0.5" position="0 0 0.02" height="0.35" width="0.35" visible="false"
+                   animation="property: scale; from: 1 1 1; to: 1.15 1.15 1.15; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate"></a-image>
+        </a-entity>
+
+      </a-entity>
+
+    </a-scene>
+  </div>
+
+  <script>
+    // =====================================================
+    // CONTROLADOR: QR único — Video + CTA (end-card)
+    // El video arranca al detectar el QR y corre una sola vez.
+    // El CTA aparece SOLO al terminar el video, centrado sobre
+    // él, como end-card de "ver completo en YouTube".
+    // =====================================================
+    AFRAME.registerComponent("qr-controller", {
+      init: function () {
+        const video    = document.querySelector("#coke-video-mp4");
+        const btnSonido    = document.querySelector("#btn-sonido");
+        const btnSonidoHit = document.querySelector("#btn-sonido-hit");
+        const btnWeb   = document.querySelector("#btn-web");
+
+        if (!video || !btnSonido || !btnSonidoHit || !btnWeb) {
+          console.warn("qr-controller: faltan referencias DOM, abortando init.");
+          return;
+        }
+
+        let listenersActivos = false;
+
+        function iniciarVideo() {
+          video.currentTime = 0;
+          video.muted = false; // intento directo: la Fase 2 ya pre-armó este elemento
+          btnSonido.setAttribute("visible", false);
+          btnWeb.setAttribute("visible", false); // el CTA se oculta al reiniciar el video
+
+          video.play().catch(function (err) {
+            // El navegador rechazó el audio (política de autoplay). Fallback determinista:
+            // silenciar y mostrar botón manual, en vez de dejar el video congelado.
+            console.warn("Autoplay con sonido bloqueado, aplicando fallback silencioso:", err);
+            video.muted = true;
+            btnSonido.setAttribute("visible", true);
+            video.play().catch(function (err2) {
+              console.warn("Video bloqueado incluso en modo silencioso:", err2);
+            });
+          });
+        }
+
+        function resetTodo() {
+          video.pause();
+          video.currentTime = 0;
+          btnSonido.setAttribute("visible", false);
+          btnWeb.setAttribute("visible", false);
+        }
+
+        if (!listenersActivos) {
+          listenersActivos = true;
+
+          video.addEventListener("ended", function () {
+            // End-card: el video queda congelado en el último frame, CTA aparece encima
+            btnWeb.setAttribute("visible", true);
+          });
+
+          btnSonidoHit.addEventListener("click", function (evt) {
+            evt.stopPropagation();
+            video.muted = false;
+            btnSonido.setAttribute("visible", false);
+          });
+
+          btnWeb.addEventListener("click", function () {
+            // Nueva pestaña: no destruye el contexto de cámara/WebGL del AR
+            window.open("https://pideenlinea.elcorral.com/", "_blank");
+          });
+        }
+
+        this.el.addEventListener("targetFound", function () {
+          console.log("QR encontrado — inicia video");
+          iniciarVideo();
+        });
+
+        this.el.addEventListener("targetLost", function () {
+          console.log("QR perdido — reset");
+          resetTodo();
+        });
+      }
+    });
+
+    // =====================================================
+    // COREOGRAFÍA GLOBAL DE INICIO DE ESCENA
+    // =====================================================
+    document.addEventListener("DOMContentLoaded", function () {
+      const sceneEl     = document.querySelector("a-scene");
+      const startBtn    = document.querySelector("#example-start-button");
+      const scanOverlay = document.querySelector("#example-scanning-overlay");
+      const mytarget0   = document.querySelector("#mytarget0");
+
+      let arSystem  = null;
+      let isStarted = false;
+
+      mytarget0.setAttribute("qr-controller", "");
+
+      if (sceneEl.hasLoaded) {
+        arSystem = sceneEl.systems["mindar-image-system"];
+      } else {
+        sceneEl.addEventListener("loaded", function () {
+          arSystem = sceneEl.systems["mindar-image-system"];
+        });
+      }
+
+      startBtn.addEventListener("click", function () {
+        if (!arSystem && sceneEl.systems) {
+          arSystem = sceneEl.systems["mindar-image-system"];
+        }
+
+        if (isStarted || !arSystem) return;
+        isStarted = true;
+
+        const video = document.querySelector("#coke-video-mp4");
+        if (video) {
+          video.load();
+          video.play().then(function () { video.pause(); }).catch(function (e) { console.log(e); });
+        }
+
+        arSystem.start();
+        document.body.classList.add("ar-active");
+        scanOverlay.classList.remove("hidden");
+      });
+
+      sceneEl.addEventListener("targetFound", function () {
+        scanOverlay.classList.add("hidden");
+      });
+
+      sceneEl.addEventListener("targetLost", function () {
+        const visible = mytarget0.components["mindar-image-target"] &&
+                        mytarget0.components["mindar-image-target"].visible;
+        if (!visible) scanOverlay.classList.remove("hidden");
+      });
+    });
+  </script>
+</body>
+</html>
